@@ -1,0 +1,212 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Worker Nodes for AWS Managed Kubernetes cluster'
+
+Parameters:
+  VPCStackName:
+    Description: The name of the CloudFormation stack with which the private EKS cluster was created
+    Type: String
+    Default: "eks-dual-vpc-stack"
+
+  ClusterStackName:
+    Description: The name of the CloudFormation stack with which the private EKS cluster was created
+    Type: String
+    Default: "eks-prod-cluster-stack"
+
+  WorkerNodeGroupName:
+    Description: Name of the worker nodegroup
+    Type: String
+    Default: "managed-workers"
+
+  WorkerNodeInstanceType:
+    Description: EC2 instance type for the node instances; must be a type that can be registered with an NLB by instance ID
+    Type: String
+    Default: m5.xlarge
+    AllowedValues:
+    - m5.large
+    - m5.xlarge
+    - c5.large
+    - c5.xlarge
+    ConstraintDescription: Must be a valid EC2 instance type
+
+  WorkerNodeKeyName:
+    Description: The EC2 Key Pair to allow SSH access to the worker node instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: EKS-Worker-East
+
+  WorkerNodeGroupMinSize:
+    Type: Number
+    Description: Minimum size of Node ASG.
+    Default: 1
+
+  WorkerNodeGroupMaxSize:
+    Type: Number
+    Description: Maximum size of Node ASG.
+    Default: 4
+
+  WorkerNodeGroupDesiredSize:
+    Type: Number
+    Description: Desired size of Node ASG.
+    Default: 2
+
+  WorkerNodeImageId:
+    Type: String
+    Default: ""
+    Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
+
+  WorkerNodeImageIdSSMParam:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: /aws/service/eks/optimized-ami/1.22/amazon-linux-2/recommended/image_id
+    Description: AWS Systems Manager Parameter Store parameter of the AMI ID for the worker node instances. 
+
+  LaunchTemplateName:
+    Description: Name of the LaunchTemplate used for worker nodes
+    Type: String
+    Default: "EKS-ManagedWorker-LaunchTemplate"  
+
+  ClusterName:
+    Description: Name of the EKS cluster
+    Type: String
+    Default: "k8s-production-cluster"
+
+  ClusterEndpoint:
+    Description: API server URL for the EKS cluster
+    Type: String
+    Default: "https://ECC8F2351296CB57AB33CB83392A0794.gr7.us-east-1.eks.amazonaws.com"
+
+  ClusterCertificateAuthority:
+    Description: Certificate Authority certificate for the EKS Cluster
+    AllowedPattern: "^LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t(.*)"
+    Type: String      
+    Default: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJeU1EY3lPVEEwTWpNek9Wb1hEVE15TURjeU5qQTBNak16T1Zvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWxuCkRLQXJZMTRxZVN1d0ZkcHptc2JPOU8vTlFoQUJVTHMzc05WeGlTOVB3dGo2ak9QR2FRUUsxcDV0SmlkaGdvN1oKSElMcHlTOTVBbGVCOTdmMW1kRXNqck1CR1NSZ2ZmRnFiZlBSblJVL0lBVkFhc0tBS3hqSzBVYWg3c0JsWDVBTgo0TlRVZ2p5VXlWM0xGakRDZjVnL0c2VWtGWDFBdFlac2VhVzdZQmsxd2R0M3h4TmdYbU8wckpKRk1ScUNLZ3FQCitTWVR4WW00OFIwVkxYUnU1UVhEOUZQTnl5bG0zSTYyYmZiQzhaWnA5a3NzVE5VQ2Uwb0VwcHlXQ3VJRE92OGYKb0c2MEhocDBIdXJZVTBPbDZsbTZ5WmlpOUxHZVVTeGxadXJkWFFsVGZWMzgyb2FoZ0xVTXNUQWRXV3AvYVRuUAphdml2NDB1eHFlalRpTS8wWFU4Q0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZHckpxREdsNFB0SWlhd2t5eVJlOFY2S01CQlRNQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQzZ0R0tuc3Q0TkNjV28yNHVWNQpyTmJRTXdCMFhxZXEvS0JPN2R0WjVTT1J5ZDZyUFlQcjdPNU9GMVhRZDR4bWxJVy9pelE1Z3dEak1pZkpqb2JuCkNxRlVhd0dQc0xlRVVTbHJZUkRuVzNvZmEzcFJreEtsQWNOTlFhNDUyYmlteW9XWDlOS05id1ZMQVFNRXdLbXEKMTVNV1BPQm0vcTB5QXhlb0taandhOTgxZTVrSFJQd0ZzSjBmcVJsM1BIaWNQWFYwMW1YWnpPNVpYNVc2UG8rTgpFaURDTHBMTmRwRTdodDVGcnRuQ0p0UTE3VTFhQU1sN2Vhd1MrODJaNjEzdVlPZFk5anVTenRDVERKTkVscGF1CmsxWmQ4U242c3haalUzQTk3Q1BkcHcrS0JwZ1hUTC94cHlTMHhicTVKc2Rob0xJSUdRQm9seGplOHorbTdHbmUKRm1rPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Base Stack"
+        Parameters:
+          - ClusterStackName
+      -
+        Label:
+          default: "Worker Nodegroup Configuration"
+        Parameters:
+          - WorkerNodeGroupName
+          - WorkerNodeGroupMinSize
+          - WorkerNodeGroupMaxSize
+          - WorkerNodeGroupDesiredSize
+      -
+        Label:
+          default: "Launch Template Configuration"
+        Parameters:
+          - LaunchTemplateName
+          - WorkerNodeImageIdSSMParam
+          - WorkerNodeImageId
+          - WorkerNodeInstanceType
+          - WorkerNodeKeyName
+      -
+        Label:
+          default: "EKS Cluster Parameters"
+        Parameters:
+          - ClusterName
+          - ClusterEndpoint
+          - ClusterCertificateAuthority
+
+Conditions:
+  HasWorkerNodeImageId: !Not
+    - "Fn::Equals":
+        - Ref: WorkerNodeImageId
+        - ""
+
+Resources:
+  # 
+  # Managed node groups are always deployed with a launch template. 
+  # If you don't specify a custom launch template to use when creating a managed node group, the EKS API creates a launch template with default values.
+  # Certain settings are prohibited in a launch template and similar settings (if any) are required in the managed node group configuration and vice versa
+  # These settings are listed here: https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
+  #
+  WorkerNodeLaunchRemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Join [ '-', [!Sub "${AWS::StackName}", !Ref LaunchTemplateName] ]
+      LaunchTemplateData:
+        DisableApiTermination: 'false'
+        KeyName: !Ref WorkerNodeKeyName
+        InstanceType: !Ref WorkerNodeInstanceType
+        ImageId: !If
+          - HasWorkerNodeImageId
+          - Ref: WorkerNodeImageId
+          - Ref: WorkerNodeImageIdSSMParam           
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub ${ClusterStackName}-CLUSTER-SECURITY-GROUP
+        MetadataOptions:
+          HttpEndpoint: "enabled"
+          HttpTokens: "optional"
+          HttpPutResponseHopLimit: 2
+        #
+        # The user data used here is required in the LaunchTemplate for creating worker nodes in a private cluster
+        #
+        UserData:
+          Fn::Base64:
+            !Sub |
+              MIME-Version: 1.0
+              Content-Type: multipart/mixed; boundary="//"
+
+              --//
+              Content-Type: text/x-shellscript; charset="us-ascii"
+              #!/bin/bash
+              set -ex
+              /etc/eks/bootstrap.sh ${ClusterName} \
+              --b64-cluster-ca ${ClusterCertificateAuthority} \
+              --apiserver-endpoint ${ClusterEndpoint} 
+              --//--
+
+  WorkerNodeInstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+  WorkerNodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      NodegroupName: !Ref WorkerNodeGroupName
+      ClusterName: !Ref ClusterName
+      NodeRole: !GetAtt WorkerNodeInstanceRole.Arn
+      ScalingConfig:
+        MinSize: !Ref WorkerNodeGroupMinSize
+        MaxSize: !Ref WorkerNodeGroupMaxSize
+        DesiredSize: !Ref WorkerNodeGroupDesiredSize      
+      Subnets:
+        - Fn::ImportValue: !Sub ${VPCStackName}-WORKER-SUBNET01
+        - Fn::ImportValue: !Sub ${VPCStackName}-WORKER-SUBNET02
+      LaunchTemplate:
+        Id: !Ref WorkerNodeLaunchRemplate
+        Version: !GetAtt WorkerNodeLaunchRemplate.DefaultVersionNumber
+      Labels:
+        role: managed-worker
+        cluster: !Ref ClusterName
+
+Outputs:
+  WorkerNodeInstanceRole:
+    Description: Worker Node Instance Role
+    Value: !GetAtt WorkerNodeInstanceRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-MANAGED-WORKERNODE-ROLE
+
+  LaunchTemplate:
+    Description: Launch Template ID and Version
+    Value: !Join [ '', ['ID=', !Ref WorkerNodeLaunchRemplate,  ' Version=', !GetAtt WorkerNodeLaunchRemplate.DefaultVersionNumber] ]

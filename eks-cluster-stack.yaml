@@ -6,7 +6,7 @@ Parameters:
   VPCStackName:
     Description: The name of the CloudFormation stack with which the VPC was created
     Type: String
-    Default: "eks-dual-vpc-stack"
+    Default: "eks-vpc-stack"
 
   ClusterName:
     Description: EKS cluster name

@@ -562,11 +562,42 @@ Resources:
     DependsOn: NLBIngressSecurityGroup
     Properties:
       Description: Allow incoming traffic port 80
-      GroupId: !Ref WorkerNodeSecurityGroup
+      GroupId: !Ref NLBIngressSecurityGroup
       CidrIp: 0.0.0.0/0
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
+
+  AuroraIngressSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group to allow traffic into an Aurora PostgreSQL database
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: AuroraIngressSecurityGroup        
+
+  AuroraIngressSecurityGroupIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: AuroraIngressSecurityGroup
+    Properties:
+      Description: Allow incoming traffic port 5432
+      GroupId: !Ref AuroraIngressSecurityGroup
+      CidrIp: 192.168.16.0/20
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+
+  AuroraIngressSecurityGroupIngress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: AuroraIngressSecurityGroup
+    Properties:
+      Description: Allow incoming traffic port 5432
+      GroupId: !Ref AuroraIngressSecurityGroup
+      CidrIp: 192.168.32.0/20
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432      
 
 Outputs:
   NLBIngressSecurityGroup:
@@ -574,6 +605,12 @@ Outputs:
     Value: !Ref NLBIngressSecurityGroup
     Export:
       Name: !Sub "${AWS::StackName}-NLB-INGRESS-SECURITY-GROUP"   
+
+  AuroraIngressSecurityGroup:
+    Description: Security group to allow traffic into an Aurora PostgreSQL database
+    Value: !Ref AuroraIngressSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-AURORA-INGRESS-SECURITY-GROUP"         
 
   DefaultSecurityGroup:
     Description: Default security group associated with the VPC

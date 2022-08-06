@@ -1,17 +1,17 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Worker Nodes for AWS Managed Kubernetes cluster'
+Description: 'Managed node group for EKS cluster'
 
 Parameters:
   VPCStackName:
     Description: The name of the CloudFormation stack with which the private EKS cluster was created
     Type: String
-    Default: "eks-vpc-stack"
+    Default: ""
 
   ClusterStackName:
     Description: The name of the CloudFormation stack with which the private EKS cluster was created
     Type: String
-    Default: "eks-prod-cluster-stack"
+    Default: ""
 
   WorkerNodeGroupName:
     Description: Name of the worker nodegroup
@@ -28,11 +28,6 @@ Parameters:
     - c5.large
     - c5.xlarge
     ConstraintDescription: Must be a valid EC2 instance type
-
-  WorkerNodeKeyName:
-    Description: The EC2 Key Pair to allow SSH access to the worker node instances
-    Type: AWS::EC2::KeyPair::KeyName
-    Default: EKS-Worker-East
 
   WorkerNodeGroupMinSize:
     Type: Number
@@ -67,18 +62,18 @@ Parameters:
   ClusterName:
     Description: Name of the EKS cluster
     Type: String
-    Default: "k8s-production-cluster"
+    Default: ""
 
   ClusterEndpoint:
     Description: API server URL for the EKS cluster
     Type: String
-    Default: "https://ECC8F2351296CB57AB33CB83392A0794.gr7.us-east-1.eks.amazonaws.com"
+    Default: ""
 
   ClusterCertificateAuthority:
     Description: Certificate Authority certificate for the EKS Cluster
-    AllowedPattern: "^LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t(.*)"
+    AllowedPattern: "^LS0tLS1(.*)"
     Type: String      
-    Default: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJeU1EY3lPVEEwTWpNek9Wb1hEVE15TURjeU5qQTBNak16T1Zvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWxuCkRLQXJZMTRxZVN1d0ZkcHptc2JPOU8vTlFoQUJVTHMzc05WeGlTOVB3dGo2ak9QR2FRUUsxcDV0SmlkaGdvN1oKSElMcHlTOTVBbGVCOTdmMW1kRXNqck1CR1NSZ2ZmRnFiZlBSblJVL0lBVkFhc0tBS3hqSzBVYWg3c0JsWDVBTgo0TlRVZ2p5VXlWM0xGakRDZjVnL0c2VWtGWDFBdFlac2VhVzdZQmsxd2R0M3h4TmdYbU8wckpKRk1ScUNLZ3FQCitTWVR4WW00OFIwVkxYUnU1UVhEOUZQTnl5bG0zSTYyYmZiQzhaWnA5a3NzVE5VQ2Uwb0VwcHlXQ3VJRE92OGYKb0c2MEhocDBIdXJZVTBPbDZsbTZ5WmlpOUxHZVVTeGxadXJkWFFsVGZWMzgyb2FoZ0xVTXNUQWRXV3AvYVRuUAphdml2NDB1eHFlalRpTS8wWFU4Q0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZHckpxREdsNFB0SWlhd2t5eVJlOFY2S01CQlRNQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQzZ0R0tuc3Q0TkNjV28yNHVWNQpyTmJRTXdCMFhxZXEvS0JPN2R0WjVTT1J5ZDZyUFlQcjdPNU9GMVhRZDR4bWxJVy9pelE1Z3dEak1pZkpqb2JuCkNxRlVhd0dQc0xlRVVTbHJZUkRuVzNvZmEzcFJreEtsQWNOTlFhNDUyYmlteW9XWDlOS05id1ZMQVFNRXdLbXEKMTVNV1BPQm0vcTB5QXhlb0taandhOTgxZTVrSFJQd0ZzSjBmcVJsM1BIaWNQWFYwMW1YWnpPNVpYNVc2UG8rTgpFaURDTHBMTmRwRTdodDVGcnRuQ0p0UTE3VTFhQU1sN2Vhd1MrODJaNjEzdVlPZFk5anVTenRDVERKTkVscGF1CmsxWmQ4U242c3haalUzQTk3Q1BkcHcrS0JwZ1hUTC94cHlTMHhicTVKc2Rob0xJSUdRQm9seGplOHorbTdHbmUKRm1rPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+    Default: "LS0tLS1=="
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -104,7 +99,6 @@ Metadata:
           - WorkerNodeImageIdSSMParam
           - WorkerNodeImageId
           - WorkerNodeInstanceType
-          - WorkerNodeKeyName
       -
         Label:
           default: "EKS Cluster Parameters"
@@ -120,19 +114,12 @@ Conditions:
         - ""
 
 Resources:
-  # 
-  # Managed node groups are always deployed with a launch template. 
-  # If you don't specify a custom launch template to use when creating a managed node group, the EKS API creates a launch template with default values.
-  # Certain settings are prohibited in a launch template and similar settings (if any) are required in the managed node group configuration and vice versa
-  # These settings are listed here: https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
-  #
   WorkerNodeLaunchRemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: !Join [ '-', [!Sub "${AWS::StackName}", !Ref LaunchTemplateName] ]
       LaunchTemplateData:
         DisableApiTermination: 'false'
-        KeyName: !Ref WorkerNodeKeyName
         InstanceType: !Ref WorkerNodeInstanceType
         ImageId: !If
           - HasWorkerNodeImageId
@@ -140,13 +127,11 @@ Resources:
           - Ref: WorkerNodeImageIdSSMParam           
         SecurityGroupIds:
           - Fn::ImportValue: !Sub ${ClusterStackName}-CLUSTER-SECURITY-GROUP
+          - Fn::ImportValue: !Sub ${VPCStackName}-NLB-INGRESS-SECURITY-GROUP
         MetadataOptions:
           HttpEndpoint: "enabled"
           HttpTokens: "optional"
           HttpPutResponseHopLimit: 2
-        #
-        # The user data used here is required in the LaunchTemplate for creating worker nodes in a private cluster
-        #
         UserData:
           Fn::Base64:
             !Sub |

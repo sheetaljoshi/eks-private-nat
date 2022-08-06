@@ -18,11 +18,11 @@ spec:
     spec: 
       containers:          
         - name: java  
-          image: 937351930975.dkr.ecr.us-east-1.amazonaws.com/k8s-recommender:multiarch
+          image: public.ecr.aws/awsvijisarathy/http-service-eks-private-nat:1.0
           imagePullPolicy: Always   
           env:
             - name: TIME_SERVICE_HOST
-              value: "192.168.35.156"
+              value: "els-nlb-internal-7c0df43b873180a1.elb.us-east-1.amazonaws.com"
             - name: TIME_SERVICE_PORT
               value: "80"
             - name: POSTGRES_USER

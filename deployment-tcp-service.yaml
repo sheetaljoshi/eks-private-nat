@@ -18,7 +18,7 @@ spec:
     spec: 
       containers:          
         - name: java
-          image: 937351930975.dkr.ecr.us-east-1.amazonaws.com/tcp-server:1.0
+          image: public.ecr.aws/awsvijisarathy/tcp-service-eks-private-nat:1.0
           imagePullPolicy: Always   
           resources:
             requests:
@@ -42,6 +42,7 @@ metadata:
   name: time-service-svc
   namespace: tcp-services
   annotations:
+    service.beta.kubernetes.io/aws-load-balancer-name: "els-nlb-internal"
     service.beta.kubernetes.io/aws-load-balancer-type: "external"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"    
 spec:

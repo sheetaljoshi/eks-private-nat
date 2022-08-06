@@ -10,15 +10,14 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: alb-ingress-recommender
+  name: ingress-recommender
   namespace: recommender
   annotations:
-    alb.ingress.kubernetes.io/load-balancer-name: eks-alb
+    alb.ingress.kubernetes.io/load-balancer-name: eks-alb-internet
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/healthcheck-path: /live
     alb.ingress.kubernetes.io/group.order: "10"
-    alb.ingress.kubernetes.io/group.name: recommender-services    
 spec:
   ingressClassName: awslb-recommender
   rules:

@@ -21,7 +21,7 @@ metadata:
 spec:
   ingressClassName: awslb-recommender
   rules:
-    - host: alb-recommender.sarathy.io
+    - host: eks-alb.sarathy.io
       http:
         paths:
           - path: /data

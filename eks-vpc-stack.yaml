@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'VPC to host a AWS Managed Kubernetes cluster'
+Description: 'VPC with a routable and non-routable CIDR to be used to host a AWS Managed Kubernetes cluster'
 
 Parameters:
 
@@ -548,30 +548,32 @@ Resources:
       RouteTableId: 
       RouteTableId: !Ref PrivateRouteTableSecondary02
 
-  #
-  # This security group is relevant for EKS clusters earlier than Kubernetes version 1.14 and platform version eks.3.
-  # When creating such clusters, this security group is specified as the control plane security group
-  # At cluster creation, the control plane security group is then attached to the cross-account elastic network interfaces for the cluster.
-  # When the unmanaged worker nodes are created, a worker node security group is created and control plane to worker node communication is configured by manually adding appropriate inbound/outbound rules to the two security groups.
-  # EKS clusters beginning with Kubernetes version 1.14 and platform version eks.3 create a cluster security group as part of cluster creation.
-  # This cluster security group is designed to allow all traffic from the control plane and managed node groups to flow freely between each other.
-  # Assigning the cluster security group to any unmanaged node group instances, eliminates the needs for manually configuring rules to enable control plane to worker node communication.
-  #
-  ControlPlaneSecurityGroup:
+  NLBIngressSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: K8s cluster control plane communication with worker nodes
+      GroupDescription: Security group to allow NLB to forward traffic to EKS worker nodes
       VpcId: !Ref VPC
       Tags:
       - Key: Name
-        Value: K8s-ControlPlane-Security-Group
+        Value: NLBIngressSecurityGroup  
+
+  NLBIngressSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: NLBIngressSecurityGroup
+    Properties:
+      Description: Allow incoming traffic port 80
+      GroupId: !Ref WorkerNodeSecurityGroup
+      CidrIp: 0.0.0.0/0
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
 
 Outputs:
-  ControlPlaneSecurityGroup:
-    Description: Security group to allow K8s worker nodes to communicate with EKS cluster control plane
-    Value: !Ref ControlPlaneSecurityGroup
+  NLBIngressSecurityGroup:
+    Description: Security group to allow NLB to forward traffic to EKS worker nodes
+    Value: !Ref NLBIngressSecurityGroup
     Export:
-      Name: !Sub "${AWS::StackName}-CONTROL-PLANE-SECURITY-GROUP"   
+      Name: !Sub "${AWS::StackName}-NLB-INGRESS-SECURITY-GROUP"   
 
   DefaultSecurityGroup:
     Description: Default security group associated with the VPC

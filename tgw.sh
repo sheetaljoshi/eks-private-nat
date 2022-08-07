@@ -6,12 +6,13 @@ VPC_A_CIDR="192.168.16.0/20"
 VPC_B_CIDR="192.168.32.0/20"
 VPC_A_ID=$(aws ec2 describe-vpcs --filters Name=tag:Name,Values=$VPC_A_NAME Name=cidr,Values=$VPC_A_CIDR --query "Vpcs[].VpcId" --output text --region $REGION)
 VPC_B_ID=$(aws ec2 describe-vpcs --filters Name=tag:Name,Values=$VPC_B_NAME Name=cidr,Values=$VPC_B_CIDR --query "Vpcs[].VpcId" --output text --region $REGION)
-VPC_A_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kubernetes.io/role/internal-elb" "Name=vpc-id,Values=$VPC_A_ID" --query "Subnets[].SubnetId" --output json --region $REGION)
-VPC_B_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kubernetes.io/role/internal-elb" "Name=vpc-id,Values=$VPC_B_ID" --query "Subnets[].SubnetId" --output json --region $REGION)
+VPC_A_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kubernetes.io/role/internal-elb" "Name=vpc-id,Values=$VPC_A_ID" --query "Subnets[].SubnetId" --output text --region $REGION)
+VPC_B_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kubernetes.io/role/internal-elb" "Name=vpc-id,Values=$VPC_B_ID" --query "Subnets[].SubnetId" --output text --region $REGION)
 
 TGW_ID=$(aws ec2 create-transit-gateway \
---description eks-tgw \
+--description "Transit gateway to bridge VPC A and B" \
 --options=AutoAcceptSharedAttachments=enable,DefaultRouteTableAssociation=enable,DefaultRouteTablePropagation=disable,VpnEcmpSupport=enable,DnsSupport=enable \
+--tag-specifications "ResourceType=transit-gateway,Tags=[{Key=Name,Value=tgw_ab}]" \
 --query "TransitGateway.TransitGatewayId" --output text --region $REGION)
 
 tgwStatus() {
@@ -59,3 +60,15 @@ until [ $(tqwAttachmentAStatus) != "pending" ] || [ $(tqwAttachmentBStatus) != "
     break
   fi
 done
+
+TGW_ROUTE_TABLE_ID=$(aws ec2 describe-transit-gateways --transit-gateway-ids $TGW_ID --query "TransitGateways[].Options.AssociationDefaultRouteTableId" --output text --region $REGION)
+
+aws ec2 create-transit-gateway-route \
+--destination-cidr-block $VPC_A_CIDR \
+--transit-gateway-route-table-id $TGW_ROUTE_TABLE_ID \
+--transit-gateway-attachment-id $TGW_ATTACHMENT_A_ID --region $REGION
+
+aws ec2 create-transit-gateway-route \
+--destination-cidr-block $VPC_B_CIDR \
+--transit-gateway-route-table-id $TGW_ROUTE_TABLE_ID \
+--transit-gateway-attachment-id $TGW_ATTACHMENT_B_ID --region $REGION

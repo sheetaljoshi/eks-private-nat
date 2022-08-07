@@ -9,6 +9,9 @@ VPC_B_ID=$(aws ec2 describe-vpcs --filters Name=tag:Name,Values=$VPC_B_NAME Name
 VPC_A_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kubernetes.io/role/internal-elb" "Name=vpc-id,Values=$VPC_A_ID" --query "Subnets[].SubnetId" --output text --region $REGION)
 VPC_B_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kubernetes.io/role/internal-elb" "Name=vpc-id,Values=$VPC_B_ID" --query "Subnets[].SubnetId" --output text --region $REGION)
 
+#
+# Create Transit Gateway
+#
 TGW_ID=$(aws ec2 create-transit-gateway \
 --description "Transit gateway to bridge VPC A and B" \
 --options=AutoAcceptSharedAttachments=enable,DefaultRouteTableAssociation=enable,DefaultRouteTablePropagation=disable,VpnEcmpSupport=enable,DnsSupport=enable \
@@ -28,6 +31,9 @@ until [ $(tgwStatus) != "pending" ]; do
   fi
 done
 
+#
+# Create Transit Gateway Attachments
+#
 TGW_ATTACHMENT_A_ID=$(aws ec2 create-transit-gateway-vpc-attachment \
 --transit-gateway-id $TGW_ID \
 --vpc-id $VPC_A_ID \
@@ -61,6 +67,9 @@ until [ $(tqwAttachmentAStatus) != "pending" ] || [ $(tqwAttachmentBStatus) != "
   fi
 done
 
+#
+# Add Static Routes to the Transit Gateway Route Table
+#
 TGW_ROUTE_TABLE_ID=$(aws ec2 describe-transit-gateways --transit-gateway-ids $TGW_ID --query "TransitGateways[].Options.AssociationDefaultRouteTableId" --output text --region $REGION)
 
 aws ec2 create-transit-gateway-route \
@@ -72,3 +81,22 @@ aws ec2 create-transit-gateway-route \
 --destination-cidr-block $VPC_B_CIDR \
 --transit-gateway-route-table-id $TGW_ROUTE_TABLE_ID \
 --transit-gateway-attachment-id $TGW_ATTACHMENT_B_ID --region $REGION
+
+#
+# Add Static Routes to the Route Tables of Private Routable Subnets in both VPCs
+#
+ROUTE_TABLE1_VPC_A_NAME="EKS-VPC-A-PRIVATE-ROUTE-TABLE-01"
+ROUTE_TABLE2_VPC_A_NAME="EKS-VPC-A-PRIVATE-ROUTE-TABLE-02"
+ROUTE_TABLE1_VPC_A_ID=$(aws ec2 describe-route-tables --filters Name=tag:Name,Values=$ROUTE_TABLE1_VPC_A_NAME "Name=vpc-id,Values=$VPC_A_ID" --query "RouteTables[].RouteTableId" --output text --region $REGION)
+ROUTE_TABLE2_VPC_A_ID=$(aws ec2 describe-route-tables --filters Name=tag:Name,Values=$ROUTE_TABLE2_VPC_A_NAME "Name=vpc-id,Values=$VPC_A_ID" --query "RouteTables[].RouteTableId" --output text --region $REGION)
+
+aws ec2 create-route --destination-cidr-block $VPC_B_CIDR --transit-gateway-id $TGW_ID --route-table-id $ROUTE_TABLE1_VPC_A_ID --region $REGION
+aws ec2 create-route --destination-cidr-block $VPC_B_CIDR --transit-gateway-id $TGW_ID --route-table-id $ROUTE_TABLE2_VPC_A_ID --region $REGION
+
+ROUTE_TABLE1_VPC_B_NAME="EKS-VPC-B-PRIVATE-ROUTE-TABLE-01"
+ROUTE_TABLE2_VPC_B_NAME="EKS-VPC-B-PRIVATE-ROUTE-TABLE-02"
+ROUTE_TABLE1_VPC_B_ID=$(aws ec2 describe-route-tables --filters Name=tag:Name,Values=$ROUTE_TABLE1_VPC_B_NAME "Name=vpc-id,Values=$VPC_B_ID" --query "RouteTables[].RouteTableId" --output text --region $REGION)
+ROUTE_TABLE2_VPC_B_ID=$(aws ec2 describe-route-tables --filters Name=tag:Name,Values=$ROUTE_TABLE2_VPC_B_NAME "Name=vpc-id,Values=$VPC_B_ID" --query "RouteTables[].RouteTableId" --output text --region $REGION)
+
+aws ec2 create-route --destination-cidr-block $VPC_A_CIDR --transit-gateway-id $TGW_ID --route-table-id $ROUTE_TABLE1_VPC_B_ID --region $REGION
+aws ec2 create-route --destination-cidr-block $VPC_A_CIDR --transit-gateway-id $TGW_ID --route-table-id $ROUTE_TABLE2_VPC_B_ID --region $REGION

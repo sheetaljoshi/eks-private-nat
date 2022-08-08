@@ -12,6 +12,7 @@ VPC_B_SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=tag-key,Values=kuber
 #
 # Create Transit Gateway
 #
+echo "Creating a Transit gateway"
 TGW_ID=$(aws ec2 create-transit-gateway \
 --description "Transit gateway to bridge VPC A and B" \
 --options=AutoAcceptSharedAttachments=enable,DefaultRouteTableAssociation=enable,DefaultRouteTablePropagation=disable,VpnEcmpSupport=enable,DnsSupport=enable \
@@ -24,7 +25,7 @@ tgwStatus() {
 
 until [ $(tgwStatus) != "pending" ]; do
   echo "Waiting for transit gateway $TGW_ID to be ready ..."
-  sleep 5s
+  sleep 10s
   if [ $(tgwStatus) = "available" ]; then
     echo "Transit gateway $TGW_ID is ready"
     break
@@ -34,6 +35,7 @@ done
 #
 # Create Transit Gateway Attachments
 #
+echo "Creating Transit gateway attachments"
 TGW_ATTACHMENT_A_ID=$(aws ec2 create-transit-gateway-vpc-attachment \
 --transit-gateway-id $TGW_ID \
 --vpc-id $VPC_A_ID \
@@ -60,7 +62,7 @@ tqwAttachmentBStatus() {
 
 until [ $(tqwAttachmentAStatus) != "pending" ] || [ $(tqwAttachmentBStatus) != "pending" ]; do
   echo "Waiting for transit gateway attachments $TGW_ATTACHMENT_A_ID and $TGW_ATTACHMENT_B_ID to be ready ..."
-  sleep 5s
+  sleep 10s
   if [ $(tqwAttachmentAStatus) = "available" ] && [ $(tqwAttachmentBStatus) = "available" ]; then
     echo "Transit gateway attachments $TGW_ATTACHMENT_A_ID and $TGW_ATTACHMENT_B_ID are ready"
     break
@@ -70,6 +72,7 @@ done
 #
 # Add Static Routes to the Transit Gateway Route Table
 #
+echo "Adding routes to Transit gateway route table"
 TGW_ROUTE_TABLE_ID=$(aws ec2 describe-transit-gateways --transit-gateway-ids $TGW_ID --query "TransitGateways[].Options.AssociationDefaultRouteTableId" --output text --region $REGION)
 
 aws ec2 create-transit-gateway-route \
@@ -85,6 +88,7 @@ aws ec2 create-transit-gateway-route \
 #
 # Add Static Routes to the Route Tables of Private Routable Subnets in both VPCs
 #
+echo "Updating routes in VPC route tables"
 ROUTE_TABLE1_VPC_A_NAME="EKS-VPC-A-PRIVATE-ROUTE-TABLE-01"
 ROUTE_TABLE2_VPC_A_NAME="EKS-VPC-A-PRIVATE-ROUTE-TABLE-02"
 ROUTE_TABLE1_VPC_A_ID=$(aws ec2 describe-route-tables --filters Name=tag:Name,Values=$ROUTE_TABLE1_VPC_A_NAME "Name=vpc-id,Values=$VPC_A_ID" --query "RouteTables[].RouteTableId" --output text --region $REGION)

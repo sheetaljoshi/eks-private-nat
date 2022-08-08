@@ -4,7 +4,7 @@ REGION=us-west-2
 CLUSTER_TEMPLATE=eks-cluster-stack.yaml
 VPC_STACK_NAME="eks-vpc-b-stack"
 CLUSTER_STACK_NAME="eks-cluster-b-stack"
-CLUSTER_NAME="eks-cluster-b"
+CLUSTER_NAME="EKS-CLUSTER-B"
 
 #
 # Create the EKS cluster

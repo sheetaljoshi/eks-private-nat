@@ -33,7 +33,7 @@ eksctl create iamserviceaccount \
 #
 # Create IAM role and service account for cluster A
 #
-CLUSTER_NAME="eks-cluster-b"
+CLUSTER_NAME="EKS-CLUSTER-B"
 SERVICE_ACCOUNT_IAM_ROLE=EKS-AWSLB-Controller-Role-$CLUSTER_NAME
 
 eksctl utils associate-iam-oidc-provider \

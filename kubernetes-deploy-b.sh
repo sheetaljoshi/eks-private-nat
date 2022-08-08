@@ -8,7 +8,7 @@
 #
 # Deploy the AWS load balancer controller
 #
-CLUSTER_NAME="eks-cluster-b"
+CLUSTER_NAME="EKS-CLUSTER-B"
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system \
 --set clusterName=$CLUSTER_NAME \
 --set serviceAccount.create=false \

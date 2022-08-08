@@ -42,7 +42,7 @@ metadata:
   name: time-service-svc
   namespace: tcp-services
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-name: "els-nlb-internal"
+    service.beta.kubernetes.io/aws-load-balancer-name: "eks-nlb-internal"
     service.beta.kubernetes.io/aws-load-balancer-type: "external"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"    
 spec:

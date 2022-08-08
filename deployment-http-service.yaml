@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: Always   
           env:
             - name: TIME_SERVICE_HOST
-              value: "els-nlb-internal-b25d35493dba1eaf.elb.us-west-2.amazonaws.com"
+              value: "els-nlb-internal-bbb644107b7314ba.elb.us-west-2.amazonaws.com"
             - name: TIME_SERVICE_PORT
               value: "80"
             - name: POSTGRES_USER

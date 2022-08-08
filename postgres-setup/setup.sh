@@ -47,7 +47,7 @@ until [ $(dbClusterStatus) != "creating" ]; do
   fi
 done
     
-echo "Creating database instance $DB_INSTANCE"
+echo "Creating database instance $DB_INSTANCE. This will take several minutes ..."
 DB_INSTANCE_ARN=$(aws rds create-db-instance \
 --db-cluster-identifier $DB_CLUSTER \
 --db-instance-identifier $DB_INSTANCE \
@@ -66,7 +66,7 @@ dbInstanceStatus() {
 }
 until [ $(dbInstanceStatus) != "creating" ]; do
   echo "Waiting for database instance $DB_INSTANCE to be ready ..."
-  sleep 10s
+  sleep 30s
   if [ $(dbInstanceStatus) = "available" ]; then
     echo "Database instance $DB_INSTANCE is ready"
     break

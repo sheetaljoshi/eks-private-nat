@@ -11,8 +11,9 @@ DB_INSTANCE="eks"
 #
 # Delete the database cluster
 #
+echo "Deleting database cluster $DB_CLUSTER"
 aws rds delete-db-cluster --skip-final-snapshot --db-cluster-identifier $DB_CLUSTER --region $REGION
-
+sleep 30s
 dbClusterDeletionStatus() {
     aws rds describe-db-clusters --db-cluster-identifier $DB_CLUSTER --query "DBClusters[].Status" --output text --region $REGION
 }

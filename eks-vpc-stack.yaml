@@ -66,32 +66,32 @@ Parameters:
 
   Subnet01Name:
     Type: String
-    Default: "PUBLIC-WORKER-1"
+    Default: "PUBLIC-1"
     Description: Name for public subnet 01
 
   Subnet02Name:
     Type: String
-    Default: "PUBLIC-WORKER-2"
+    Default: "PUBLIC-2"
     Description: Name for public subnet 02 
 
   Subnet01PrivateName:
     Type: String
-    Default: "PRIVATE-WORKER-1"
+    Default: "PRIVATE-1"
     Description: Name for private subnet 01  
 
   Subnet02PrivateName:
     Type: String
-    Default: "PRIVATE-WORKER-2"
+    Default: "PRIVATE-2"
     Description: Name for private subnet 02   
 
   Subnet01ClusterName:
     Type: String
-    Default: "PRIVATE-CLUSTER-1"
+    Default: "PRIVATE-CLUSTER-SECONDARY-1"
     Description: Name for private subnet 01  
 
   Subnet02ClusterName:
     Type: String
-    Default: "PRIVATE-CLUSTER-2"
+    Default: "PRIVATE-CLUSTER-SECONDARY-2"
     Description: Name for private subnet 02 
 
   Subnet01PrivateSecondaryName:

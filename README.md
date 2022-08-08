@@ -22,8 +22,8 @@ This directory contains software artifacts for implementing the networking archi
 #### Setting up the EKS clusters 
 6. Execute the script **cluster-a.sh** to launch an EKS cluster named **EKS-CLUSTER-A** into **EKS-VPC-A** and provision a managed node group.
 7. Execute the script **cluster-b.sh** to launch an EKS cluster named **EKS-CLUSTER-B** into **EKS-VPC-B** and provision a managed node group.
-8. Run the *aws eks update-kubeconfig --name EKS-CLUSTER-A --region $REGION* command update the Kubernetes configuration file.
-
+8. Run the *aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION* command to update the Kubernetes configuration file and enable *kubectl* 
+access to both clusters.
 
 #### Deploying workloads to the EKS clusters 
 9. Execute the script **createIRSA.sh** to set IAM roles and service accounts required to deploy the AWS Load Balancer Controller to both clusters.

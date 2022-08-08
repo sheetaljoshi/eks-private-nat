@@ -17,17 +17,19 @@ This directory contains software artifacts for implementing the networking archi
 
 #### Setting up the PostgreSQL database 
 4. Execute the script **postgres/setup.sh** to setup an Aurora PostgreSQL database instance in **EKS-VPC-B**
-5. Follow the instructions in **postgres/initialize.sh** to initialize this database instance with tables and import sample data into it. The commands in this script should be executed from an EC2 instance that was launched in **EKS-VPC-B** in order to have access to the private endpoint of the database.
+5. Follow the instructions in the file [postgres/initialize.md](https://github.com/vijayansarathy/eks-private-nat/blob/main/postgres-setup/initialize.md) to initialize this database instance with tables and import sample data into it. The commands in this script should be executed from an EC2 instance that was launched in **EKS-VPC-B** in order to have access to the private endpoint of the database.
  
 #### Setting up the EKS clusters 
 6. Execute the script **cluster-a.sh** to launch an EKS cluster named **EKS-CLUSTER-A** into **EKS-VPC-A** and provision a managed node group.
 7. Execute the script **cluster-b.sh** to launch an EKS cluster named **EKS-CLUSTER-B** into **EKS-VPC-B** and provision a managed node group.
+8. Run the *aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION* command to update the Kubernetes configuration file and enable *kubectl* 
+access to both clusters.
 
 #### Deploying workloads to the EKS clusters 
-8. Execute the script **createIRSA.sh** to set IAM roles and service accounts required to deploy the AWS Load Balancer Controller to both clusters.
-9. Set Kubernetes content to **EKS-CLUSTER-B** using the *kubectl config use-context* command and then execute the script **kubernetes-deploy-b.sh**. This will deploy the TCP web service and the internal Network Load Balancer into that cluster.
-10. Update the script **kubernetes-deploy-a.sh** by modifying the variable *POSTGRES_HOST* with the endpoint URL of the database instance setup in Step 4. Next, update the YAML manifest **deployment-http-service.yaml** by modifying the environment variable *TIME_SERVICE_HOST* with the DNS name of the Network Load Balancer created in Step 9. Finally, set Kubernetes content to **EKS-CLUSTER-A** using the *kubectl config use-context* command and then execute the script **kubernetes-deploy-a.sh**. This will deploy the HTTP web service and the internet-facing Application Load Balancer into that cluster.
-11. Now, you can invoke the HTTP web service endppoints with the following URLs:
+9. Execute the script **createIRSA.sh** to set IAM roles and service accounts required to deploy the AWS Load Balancer Controller to both clusters.
+10. Set Kubernetes context to **EKS-CLUSTER-B** using the *kubectl config use-context* command and then execute the script **kubernetes-deploy-b.sh**. This will deploy the TCP web service and an internal Network Load Balancer into that cluster.
+11. Update the script **kubernetes-deploy-a.sh** by modifying the variable **POSTGRES_HOST** that is used in a Kubernetes Secret creation with the endpoint URL of the database instance setup in Step 4. Next, update the YAML manifest **deployment-http-service.yaml** by modifying the environment variable **TIME_SERVICE_HOST** with the DNS name of the Network Load Balancer created in Step 10. Finally, set Kubernetes content to **EKS-CLUSTER-A** using the *kubectl config use-context* command and then execute the script **kubernetes-deploy-a.sh**. This will deploy the HTTP web service and the internet-facing Application Load Balancer into that cluster.
+12. Now, you can invoke the HTTP web service endppoints with the following URLs:
   - curl -X GET http://$ALB_DNS_NAME/data
   - curl -X GET http://$ALB_DNS_NAME/time
 

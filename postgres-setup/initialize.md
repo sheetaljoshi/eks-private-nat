@@ -1,5 +1,14 @@
 #
-# Run these commands from an EC2 instance which is in the same VPC as the Aurora/RDS PostgreSQL database.
+# First, laumch an EC2 instance in the same VPC as the Aurora/RDS PostgreSQL database.
+# Copy the following files over to that instance from your local environment using a CLI utility such as 'scp'
+# 1. exports
+# 2. init-1.sh
+# 3. init-2.sh
+# 4. postgres-data.csv
+#
+# Then, run the commands manually one by one 
+
+#
 # Install 'psql' tool on the instance using the following command
 # 
 sudo amazon-linux-extras install postgresql10 -y
@@ -7,6 +16,7 @@ sudo amazon-linux-extras install postgresql10 -y
 #
 # Export the environmane variables in the 'exports' file
 # Make sure to update the value of variable DBHOST to the endpoint URL of the Aurora PostgreSQL database.
+#
 source exports
 
 #
@@ -14,8 +24,8 @@ source exports
 # We are connecting to the remote Postgres database and running the PSQL commands against it.
 # This will setup the database, schema, table etc.
 #
-./init-1.sh
-./init-2.sh
+./init-1.sh  # When prompted for password, enter 'postgres'
+./init-2.sh  # When prompted for password, enter 'eks'
 
 #
 # Now, import data into Postgres database

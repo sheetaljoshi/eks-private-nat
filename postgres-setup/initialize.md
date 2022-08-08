@@ -26,11 +26,8 @@ init-1.sh  # When prompted for password, enter 'postgres'
 init-2.sh  # When prompted for password, enter 'eks'
 ```
 
-#
-# Now, import data into Postgres database
-# First login into the remote Postgres instance
-# Then, run the '\copy' commands from within the Postgres shell
-# Modify the path names of the CSV files you are using for the import
-#
+Now, import data into Postgres database. First login into the remote Aurora PostgreSQL instance using the **psql** utility you installed earlier. Then, run the **\copy** command from within the Postgres shell. Modify the path names of the CSV file you are using for the import
+```
 psql --host=$DBHOST --user=$DBROLE --dbname=$DBNAME
 \copy analytics.popularity_bucket_permanent from 'postgres-data.csv' WITH DELIMITER ',' CSV HEADER;
+```

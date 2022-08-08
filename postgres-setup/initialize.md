@@ -6,7 +6,7 @@ First, laumch an EC2 instance in the same VPC as the Aurora/RDS PostgreSQL datab
 - init-2.sh
 - postgres-data.csv
 
-Then, run the commands manually one by one 
+Then, run the commands manually one by one.
 
 
 #### Install 'psql' tool on the instance using the following command
@@ -15,7 +15,7 @@ Then, run the commands manually one by one
 
 #### Export the environmane variables in the 'exports' file
 Make sure to update the value of variable *DBHOST* to the endpoint URL of the Aurora PostgreSQL database.
-```source exports``
+```source exports```
 
 #
 # Now, run these scripts

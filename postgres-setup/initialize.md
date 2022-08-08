@@ -20,13 +20,11 @@ Export the environmane variables in the **exports** file. Make sure to update th
 source exports
 ```
 
-#
-# Now, run these scripts
-# We are connecting to the remote Postgres database and running the PSQL commands against it.
-# This will setup the database, schema, table etc.
-#
-./init-1.sh  # When prompted for password, enter 'postgres'
-./init-2.sh  # When prompted for password, enter 'eks'
+Now, run the DDL and DML commands in the scripts **init-1.sh** and **init-2.sh**. This will setup the relevant database, schema, tables in the Aurora PostgreSQL database, instance.
+```
+init-1.sh  # When prompted for password, enter 'postgres'
+init-2.sh  # When prompted for password, enter 'eks'
+```
 
 #
 # Now, import data into Postgres database

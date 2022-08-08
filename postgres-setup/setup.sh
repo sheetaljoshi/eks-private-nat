@@ -13,6 +13,8 @@ DB_CLUSTER="aurora-eks-cluster"
 DB_INSTANCE="eks"
 DB_ENGINE="aurora-postgresql"
 DB_ENGINE_VERSION="10.18"
+
+aws rds create-db-subnet-group \
 --db-subnet-group-name $DB_SUBNET_GROUP \
 --db-subnet-group-description "Aurora PostgreSQL subnet group" \
 --subnet-ids $PRIVATE_SUBNET_IDS \

@@ -296,8 +296,6 @@ Resources:
       Tags:
       - Key: Name
         Value: !Join [ '-', [ !Ref VpcName, !Ref Subnet01ClusterName] ]
-      - Key: kubernetes.io/role/internal-elb
-        Value: 2
 
   Subnet02Cluster:
     Type: AWS::EC2::Subnet
@@ -317,8 +315,6 @@ Resources:
       Tags:
       - Key: Name
         Value: !Join [ '-', [ !Ref VpcName, !Ref Subnet02ClusterName] ]
-      - Key: kubernetes.io/role/internal-elb
-        Value: 2
 
   Subnet01PrivateSecondary:
     DependsOn: VpcCidrBlock
@@ -339,8 +335,6 @@ Resources:
       Tags:
       - Key: Name
         Value: !Join [ '-', [ !Ref VpcName, !Ref Subnet01PrivateSecondaryName] ]
-      - Key: kubernetes.io/role/internal-elb
-        Value: 1
 
   Subnet02PrivateSecondary:
     DependsOn: VpcCidrBlock
@@ -361,8 +355,6 @@ Resources:
       Tags:
       - Key: Name
         Value: !Join [ '-', [ !Ref VpcName, !Ref Subnet02PrivateSecondaryName] ]
-      - Key: kubernetes.io/role/internal-elb
-        Value: 1
 
   NATGateway1EIP:
     Type: AWS::EC2::EIP

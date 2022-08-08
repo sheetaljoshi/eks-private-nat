@@ -8,10 +8,9 @@ First, laumch an EC2 instance in the same VPC as the Aurora/RDS PostgreSQL datab
 
 Then, run the commands manually one by one 
 
-#
-# Install 'psql' tool on the instance using the following command
-# 
-sudo amazon-linux-extras install postgresql10 -y
+
+#### Install 'psql' tool on the instance using the following command
+'sudo amazon-linux-extras install postgresql10 -y'
 
 #
 # Export the environmane variables in the 'exports' file

@@ -26,7 +26,7 @@ This directory contains software artifacts for implementing the networking archi
 
 ### Deploying workloads to the EKS clusters 
 
-8. Execute the script **createIRSA.sh** to set IAM roles and service accounts required to deploy the AWS Load Balancer Controller
+8. Execute the script **createIRSA.sh** to set IAM roles and service accounts required to deploy the AWS Load Balancer Controller to bothe clusters.
 9. Set Kubernetes content to **EKS-CLUSTER-B** using the *kubectl config use-context* command and then execute the script **kubernetes-deploy-b.sh**. This will deploy the TCP web service and the internal Network Load Balancer into that cluster.
 10. First update the script **kubernetes-deploy-a.sh** by modifying the variable *POSTGRES_HOST* with the endpoint URL of the database instance setup in Step 4. Next, update the YAML manifest **deployment-http-service.yaml** by modifying the environment variable *TIME_SERVICE_HOST* with the DNS name of the Network Load Balancer created in Step 9. Finally, set Kubernetes content to **EKS-CLUSTER-A** using the *kubectl config use-context* command and then execute the script **kubernetes-deploy-a.sh**. This will deploy the HTTP web service and the internet-facing Application Load Balancer into that cluster.
 

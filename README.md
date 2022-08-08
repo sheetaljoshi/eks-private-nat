@@ -8,3 +8,14 @@ This directory contains software artifacts for implementing the networking archi
 ## Solution architecrue
 <img class="wp-image-1960 size-full" src="images/solution-architecture.png" alt="Solution architecture"/>
 
+## Deploy
+
+### Setting up the network architecture
+
+1. Execute the script **vpc-a.sh** to setup a VPC named **EKS-VPC-A** with the routable CIDR 192.168.16.0/20 and non-routable CIDR 100.64.0.0/16
+2. Execute the script **vpc-b.sh** to setup a VPC named **EKS-VPC-B** with the routable CIDR 192.168.32.0/20 and non-routable CIDR 100.64.0.0/16
+3. Execute the script **tgw.sh** to setup a transit gateway and transit gateway attachments to route traffic between the two VPCs. This script update the route tables associated with the transit gateway as well as the routable subnets in the two VPCs.
+4. Execute the script **postgres/setup.sh** to setup an Aurora PostgreSQL database instance in **EKS-VPC-B**
+5. Follow the instructions in **postgres/initialize.sh** to initialize this database instance with tables and import sample data into it. The commands in this step should be executed from an EC2 instance that resides in **EKS-VPC-B**
+6. Execute the script **cluster-a.sh** to launch an EKS cluster into **EKS-VPC-A** and provision a managed node group.
+7. Execute the script **cluster-b.sh** to launch an EKS cluster into **EKS-VPC-B** and provision a managed node group.

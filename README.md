@@ -18,7 +18,7 @@ This directory contains software artifacts for implementing the networking archi
 ### Setting up the PostgreSQL database 
 
 4. Execute the script **postgres/setup.sh** to setup an Aurora PostgreSQL database instance in **EKS-VPC-B**
-5. Follow the instructions in **postgres/initialize.sh** to initialize this database instance with tables and import sample data into it. The commands in this step should be executed from an EC2 instance that resides in **EKS-VPC-B**
+5. Follow the instructions in **postgres/initialize.sh** to initialize this database instance with tables and import sample data into it. The commands in this script should be executed from an EC2 instance that resides in **EKS-VPC-B**
  
 ### Setting up the EKS clusters 
 6. Execute the script **cluster-a.sh** to launch an EKS cluster named **EKS-CLUSTER-A** into **EKS-VPC-A** and provision a managed node group.

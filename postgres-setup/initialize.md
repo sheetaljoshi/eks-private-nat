@@ -1,22 +1,21 @@
 ### Instructions for initializing the Aurora PostgreSQL database instance 
 
 First, laumch an EC2 instance in the same VPC as the Aurora/RDS PostgreSQL database. Copy the following files over to that instance from your local environment using a CLI utility such as 'scp'
-1. exports
-2. init-1.sh
-3. init-2.sh
-4. postgres-data.csv
+- exports
+- init-1.sh
+- init-2.sh
+- postgres-data.csv
 
 Then, run the commands manually one by one 
 
 
 #### Install 'psql' tool on the instance using the following command
-'sudo amazon-linux-extras install postgresql10 -y'
+```sudo amazon-linux-extras install postgresql10 -y```
 
-#
-# Export the environmane variables in the 'exports' file
-# Make sure to update the value of variable DBHOST to the endpoint URL of the Aurora PostgreSQL database.
-#
-source exports
+
+#### Export the environmane variables in the 'exports' file
+Make sure to update the value of variable *DBHOST* to the endpoint URL of the Aurora PostgreSQL database.
+```source exports``
 
 #
 # Now, run these scripts
